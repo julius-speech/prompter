@@ -1,20 +1,20 @@
-# Prompter
+# Prompter for Julius
 
 ![Screenshot](/screenshot.png)
 
-This tiny script receives recognition result from [Julius](http://github.com/julius-speech/julius), and displays them as a scrolling caption.
+Prompter is a perl/Tkx based tiny program that display recognition result sent from [Julius](http://github.com/julius-speech/julius), as a scrolling caption.
 
 # Requirement
 
-Perl and its Tkx extension.  Tested on ActivePerl/win32.
+Perl and Tkx extension.
+Developed and tested on ActivePerl/win32.
 
 # HowTo
 
-Modify the Julius server name in "prompter.pl" for your environment, then:
+First, modify the hard-coded Julius server name in "prompter.pl", then:
 
-1. Start prompter.pl
-2. Run Julius with `-module -progout -outcode Ww`. 
- Also make sure your Julius outputs the results in UTF-8 encoding.
+1. Start prompter.pl.
+2. Run Julius with `-module -progout -outcode Ww`.  (Also make sure your Julius output is UTF-8)
 3. After starting Julius, push "Connect" button to connect to Julius.
 
-Prompter will retry connection when connection is lost for every 3 seconds, maximum at 60 seconds in total.
+When connection was lost or server not responding, prompter will retry connection for every 3 seconds, maximum at 60 seconds in total.
