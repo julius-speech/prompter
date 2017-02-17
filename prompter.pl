@@ -18,6 +18,8 @@ my $port = 10500;
 my $incode = 'utf8';
 # font name
 my $fontname = "ＭＳ ゴシック";
+# number of numlines
+my $lines = 3;
 
 ############# global variable #############
 
@@ -34,13 +36,13 @@ my $ConnectRetryIntervalMSec = 300;
 #### making window
 
 my $mw = Tkx::widget->new(".");
-$mw->g_wm_geometry("600x200+0+0");
+$mw->g_wm_geometry("600x250+0+0");
 my $text = $mw->new_text(
     -foreground => '#FFFFFF',
     -background => '#000000',
     -cursor => 'man',
     -font => [$fontname, $textsize],
-    -height => 3,
+    -height => $lines,
     -padx => 15,
     -pady => 7,
     -state => 'normal',
@@ -198,6 +200,10 @@ sub start_process {
         }
         $fpflag = 1;
         # $lastOutputTime = [gettimeofday];
+        $numlines = $text->index("end - 1 line");
+        if ($numlines > $lines) {
+            $text->delete("1.0", "end - $lines lines");
+        }
     } elsif (/\<REJECTED/) {
         if ($fpflag == 0) {
             $text->delete("prog.first", "prog.last");
