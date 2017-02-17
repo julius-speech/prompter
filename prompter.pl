@@ -24,7 +24,7 @@ my $fontname = "ＭＳ ゴシック";
 $mes = "This is prompter, a fancy recognition result showing for Julius";
 $textsize = 30;
 
-my $maxConnectRetry = 10;
+my $maxConnectRetry = 20;
 my $ConnectRetryIntervalMSec = 300;
 
 ###########################################
