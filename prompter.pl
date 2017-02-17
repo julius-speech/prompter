@@ -20,6 +20,8 @@ my $incode = 'utf8';
 my $fontname = "ＭＳ ゴシック";
 # number of numlines
 my $lines = 3;
+# color of progressive result
+my $progcolor = "#999999";
 
 ############# global variable #############
 
@@ -176,7 +178,7 @@ sub start_process {
                 $text->delete("prog.first", "prog.last");
             }
             $text->insert_end($str1, "prog");
-            $text->tag_config("prog", -foreground => "#666666");
+            $text->tag_config("prog", -foreground => $progcolor);
             $text->see("end");
         }
     } elsif (/\<SHYPO RANK/) {
