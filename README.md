@@ -12,7 +12,7 @@ Perl and Tkx extension is required to run.  Developed and tested on ActivePerl/w
 
 First, look at the header part of the script, and set Julius server name.
 
-You can also change caption size, window location, colors, fonts, etc. 
+You can also change caption size, window location, fonts, colors, etc. 
 
 Then,
 
@@ -20,7 +20,7 @@ Then,
 2. Run Julius with `-module -progout -outcode Ww`.
 3. After starting Julius, push "Connect" button to connect to Julius.
 
-When failed to connect, or connection was lost while running, prompter will automatically retry to connect for every 3 seconds, maximum at 60 seconds.
+When failed to connect, or connection was lost while running, prompter will automatically retry connection for every 3 seconds, maximum at 60 seconds.
 
-If displaying text clutters, make sure your Julius output result texts in UTF-8 encoding!
+If text clutters, make sure your Julius output is UTF-8 encoding!
 
