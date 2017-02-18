@@ -9,27 +9,43 @@ use Tkx;
 use Encode;
 use Time::HiRes qw( usleep gettimeofday tv_interval );
 
-############# configuration #############
+############# user configuration #############
+
 # Julius host name
 my $host = "localhost";
 # Julius module port number (default is 10500)
 my $port = 10500;
-# julius output code, '' for utf-8
-my $incode = 'utf8';
+# text height of the caption area
+my $lines = 3;
+# default text size
+my $textsize = 30;
+# initial message on caption
+my $mes = ">> Prompter, a fancy recognition result for Julius";
+# initial window location
+my $windowloc = "700x250+0+0";
 # font name
 my $fontname = "ＭＳ ゴシック";
-# number of numlines
-my $lines = 3;
+# foreground color
+my $fgcolor = '#FFFFFF';
+# background fgcolor
+my $bgcolor = '#000000';
 # color of progressive result
 my $progcolor = "#999999";
 
-############# global variable #############
+############# system configuration #############
 
-$mes = "This is prompter, a fancy recognition result showing for Julius";
-$textsize = 30;
-
-my $maxConnectRetry = 20;
+# connection retry interval msec
 my $ConnectRetryIntervalMSec = 300;
+
+# max num of connection retry
+my $maxConnectRetry = 20;
+
+# maximum number of chars to execute log purge (for large caption, use larger value for safe)
+my $maxlinelen = 100;
+
+# julius output character code
+my $incode = 'utf8';
+
 
 ###########################################
 ###########################################
@@ -38,10 +54,10 @@ my $ConnectRetryIntervalMSec = 300;
 #### making window
 
 my $mw = Tkx::widget->new(".");
-$mw->g_wm_geometry("600x250+0+0");
+$mw->g_wm_geometry($windowloc);
 my $text = $mw->new_text(
-    -foreground => '#FFFFFF',
-    -background => '#000000',
+    -foreground => $fgcolor,
+    -background => $bgcolor,
     -cursor => 'man',
     -font => [$fontname, $textsize],
     -height => $lines,
@@ -78,7 +94,7 @@ $button2->g_pack( -side => 'left');
 my $isInConnect = 0;
 my $connectCount = 0;
 
-#### make error not use dialog window
+#### avoid error on dialog window, instead call function when $isInConnect is 1
 Tkx::set("perl_bgerror", sub {
     splice(@_, 0, 3);
     my $msg = shift;
@@ -105,10 +121,12 @@ my $socket;
 #### infinite main loop
 Tkx::MainLoop();
 
+# change text size
 sub setscale () {
     $text->configure(-font => [$fontname, $textsize]);
 }
 
+# retry connection
 sub retryConnect() {
     $connectCount++;
     if ($connectCount < $maxConnectRetry) {
@@ -139,11 +157,15 @@ sub connectJulius () {
 }
 
 my $errorcount = 0;
+
+# data receiving process
 sub start_process {
     $_ = Tkx::gets($socket);
     if ($_ eq "") {
+        # error
         $errorcount++;
         if ($errorcount >= 20) {
+            # enter retry mode
             Tkx::close($socket);
             $connectCount = 0;
             &retryConnect();
@@ -156,13 +178,6 @@ sub start_process {
     if (/\<PHYPO PASS=\"1\"/) {
         $pass = 1;
         $str1 = "";
-#       if ($lastOutputTime != 0) {
-#           if (tv_interval($lastOutputTime) > 2.0) {
-#               $text->insert("end", "\n◆");
-#               $text->see("end");
-#           }
-#           $lastOutputTime = 0;
-#       }
     } elsif (/WHYPO/) {
         ($w) = ($_ =~ /WORD=\"(.*)\"\/\>/);
         if ($pass == 1) {
@@ -172,6 +187,8 @@ sub start_process {
         }
     } elsif (/\<\/PHYPO>/) {
         if ($str1 ne "") {
+            # 1st pass progressive result
+            $str1 = &formatStringJP($str1);
             if ($fpflag == 1) {
                 $fpflag = 0;
             } else {
@@ -185,36 +202,31 @@ sub start_process {
         $pass = 2;
         $str2 = "";
     } elsif (/\<\/SHYPO>/ && $pass == 2) {
+        # 2nd pass final result
         if ($fpflag == 0) {
             $text->delete("prog.first", "prog.last");
         }
-        my $s = $str2;
-        $s =~ s/、//g;
-        $s =~ s/。//g;
-        if ($s ne "") {
-            if (! ($str2 =~ /。$/)) {
-                $str2 .= " ";
-            }
-            $str2 =~ s/、/ /g;
-            $str2 =~ s/。/ /g;
+        $str2 = &formatStringJP($str2);
+        if (! $str2 =~ /^ *$/) {
             $text->insert("end", $str2);
             $text->see("end");
+            # rehash old lines
+            $linelen = $text->index("end - 1 chars");
+            if ($linelen > "1.$maxlinelen") {
+                 $text->delete("0.0", "end - $lines display lines");
+            }
         }
         $fpflag = 1;
-        # $lastOutputTime = [gettimeofday];
-        $numlines = $text->index("end - 1 line");
-        if ($numlines > $lines) {
-            $text->delete("1.0", "end - $lines lines");
-        }
     } elsif (/\<REJECTED/) {
+        # rejected
         if ($fpflag == 0) {
             $text->delete("prog.first", "prog.last");
         }
         $fpflag = 1;
-        # $lastOutputTime = [gettimeofday];
     }
 }
 
+# clear text
 sub resetMessage ()
 {
     $pass = 1;
@@ -222,4 +234,18 @@ sub resetMessage ()
     $str2 = "";
     $fpflag = 1;
     $text->delete("0.0", "end");
+}
+
+# re-format Japanese recognition result: delete symbols
+sub formatStringJP()
+{
+    my ($str) = @_;
+
+    if (! ($str =~ /。$/)) {
+        $str .= " ";
+    }
+    $str =~ s/、//g;
+    $str =~ s/。/ /g;
+
+    return $str;
 }
