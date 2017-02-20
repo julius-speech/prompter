@@ -12,7 +12,7 @@ Perl and Tkx extension is required to run this program.  Developed and tested on
 
 First, look at the header part of the script, and set the server name where Julius runs.
 
-You can also change caption size, window location, fonts, colors, etc. 
+You can also change fonts, caption text height, default font size, window location, colors, etc. 
 
 Then,
 
